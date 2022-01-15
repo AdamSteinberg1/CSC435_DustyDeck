@@ -1,3 +1,1 @@
-# DustyDeck
-
-Project 1 for CSC435
+Project 1 for CSC 435
