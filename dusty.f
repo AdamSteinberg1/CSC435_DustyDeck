@@ -1,10 +1,10 @@
-      program dusty 
+      program dusty
 
 *  The ancient dusty deck code
 *  Modified to use timing libs in 2016
-*  Modified to use standardized RNG in 2018 
+*  Modified to use standardized RNG in 2018
 
-      parameter (MAXDIM = 100)
+      parameter (MAXDIM = 50)
 
       integer IA(MAXDIM), N
       double precision AV(MAXDIM), BV(MAXDIM), CV(MAXDIM)
@@ -17,23 +17,23 @@
       double precision wall, cpu
       double precision walltime, cputime
 
-* The collowing was added only for call to conrand 
+* The collowing was added only for call to conrand
       double precision seed, conrand
- 
+
       double precision trig
       external trig
-* The collowing was added only for call to conrand 
-      external conrand 
-      
+* The collowing was added only for call to conrand
+      external conrand
+
 * The collowing was added only for call to walltime and cputime
       external walltime, cputime
- 
+
       N = MAXDIM
-     
+
       wall = walltime()
       cpu  = cputime()
-      
-      seed = 1.0D0 
+
+      seed = 1.0D0
 
 *     Fill arrays
 
@@ -45,7 +45,7 @@
 10    continue
 
       do 11 i = 1, N
-        BV(i) = bessel_jn(1,dble((conrand(seed) * 
+        BV(i) = bessel_jn(1,dble((conrand(seed) *
      +               (-1)**(mod(int(10*conrand(seed)),N)))))
 11    continue
 
@@ -54,7 +54,7 @@
         ival = N
         check = check + AV(i) * BV(i)
         call idcheck(ival,check,AV,BV,ID)
-12    continue  
+12    continue
 
 * Compute |AV><BV|
 
@@ -70,13 +70,13 @@
         IA(I) = i
 13    continue
 
-      do 15 i = 1, N 
-        do 16 j = 0, i, 8  
-             IA(I) = mod(mod(i+j,N),N)+1 
+      do 15 i = 1, N
+        do 16 j = 0, i, 8
+             IA(I) = mod(mod(i+j,N),N)+1
 16      continue
 15    continue
 
-* Loop 20 
+* Loop 20
 
       do 20 i = 1, N
          call idcheck(N,check,AV,BV,ID)
@@ -84,7 +84,7 @@
 20    continue
 
 
-* Loop 30 
+* Loop 30
 
       do 30 i = 2, N
          call idcheck(N,check,AV,BV,ID)
@@ -92,27 +92,27 @@
 30    continue
 
 
-* Loop 40 
+* Loop 40
 
       do 40 i = 1, N
          call idcheck(N,check,AV,BV,ID)
          do 45 j = 1, N
             if ( check .gt. 0.5 ) then
-               BOT = OP(i,j) 
+               BOT = OP(i,j)
                TOP = AV(j) * BV(j)
                HOLDA = AV(j)
                AV(j) = BV(j) + CV(j) / (TOP-BOT) * ID(i,i)
                BV(j) = HOLDA + CV(j) / (TOP-BOT) * ID(j,j)
-               AM(i,j) = AV(j) * trig(IA(i),IA(j)) 
-               BM(i,j) = BV(j) * trig(IA(j),IA(i)) 
+               AM(i,j) = AV(j) * trig(IA(i),IA(j))
+               BM(i,j) = BV(j) * trig(IA(j),IA(i))
             else
-               BOT = OP(i,j) 
+               BOT = OP(i,j)
                TOP = AV(j) * BV(j)
                HOLDA = AV(j)
                AV(j) = BV(j) - CV(j) / (TOP-BOT) * ID(j,j)
                BV(j) = HOLDA - CV(j) / (TOP-BOT) * ID(i,i)
                AM(i,j) = AV(j) / trig(IA(i),IA(j))
-               BM(i,j) = BV(j) / trig(IA(j),IA(i)) 
+               BM(i,j) = BV(j) / trig(IA(j),IA(i))
             endif
 45       continue
 40    continue
@@ -125,9 +125,9 @@
             CM(i,j) = 0.0
             do 55 k = 1, N
                if ( i .lt. j ) then
-                  CM(i,j) = CM(i,j) - AM(i,k) * BM(k,j) / check 
+                  CM(i,j) = CM(i,j) - AM(i,k) * BM(k,j) / check
                else
-                  CM(i,j) = CM(i,j) + AM(i,k) * BM(k,j) / check 
+                  CM(i,j) = CM(i,j) + AM(i,k) * BM(k,j) / check
                endif
 55          continue
 52       continue
@@ -166,51 +166,51 @@
 
 
       HOLDA = abs(AM(1,1))
-      HOLDB = abs(BM(1,1)) 
+      HOLDB = abs(BM(1,1))
       do 73 i = 1, N
         do 74 j = 1, N
-          HOLDA = max(HOLDA,abs(AM(i,j))) 
-          HOLDB = max(HOLDB,abs(BM(i,j))) 
+          HOLDA = max(HOLDA,abs(AM(i,j)))
+          HOLDB = max(HOLDB,abs(BM(i,j)))
 74      continue
 73    continue
-         
+
       TRACE3 = 0.0
-       
+
 * Loop 80
 
       do 80 i = 1, N
-        TRACE3 = TRACE3 + (AM(IA(i),IA(i)) + BM(IA(i),IA(i)) 
+        TRACE3 = TRACE3 + (AM(IA(i),IA(i)) + BM(IA(i),IA(i))
      +                  - DM(IA(i),IA(i))) / (HOLDA * HOLDB)
 80    continue
 
       cpu = cputime() - cpu
       wall = walltime() - wall
-      
+
       print *, 'Final trace = ', trace3, ' and IDCHECK ', check
       print *, '-- RUNTIME -> ', cpu, ' seconds'
       end
-        
-         
+
+
       double precision function trig (i,j)
       double precision x, y, z
       pi = acos(-1.0)
       x = dble(i) - dble(j)
-      y = dble(i) + dble(j) 
-      z = exp ( sin(sqrt(x**2+y**2)*pi  ) )  
+      y = dble(i) + dble(j)
+      z = exp ( sin(sqrt(x**2+y**2)*pi  ) )
       trig = x + y + log10(abs(1+z+(x*y*z)))/ (abs(x)+abs(y))
       return
-      end 
+      end
 
       subroutine idcheck(N,check,AV,BV,ID)
 
       double precision AV(*), BV(*), ID(N,*)
       double precision l2
       double precision check, check2
-      double precision a, b, c, d 
+      double precision a, b, c, d
 
-      do 10 i = 1, N  
+      do 10 i = 1, N
         do 20 j = 1, N
-          if ( i .eq. j ) then 
+          if ( i .eq. j ) then
              if (( AV(i) .lt. 0 ) .and. ( BV(j) .lt. 0 )) then
                ID(i,j) = 1.0
              elseif (( AV(i) .lt. 0 ) .and. ( BV(j) .gt. 0 )) then
@@ -220,7 +220,7 @@
              else
                ID(i,j) = 1.0
              endif
-          elseif ( i .ne. j ) then 
+          elseif ( i .ne. j ) then
              ID(i,j) =  cos(check+2.0*i*acos(-1.0)/N)+
      C                  2.0*sin(check+ 2.0*j*acos(-1.0)/N)
           endif
@@ -244,7 +244,7 @@
       do 60 i = 1, N
         BV(i) = BV(i) / l2
 60    continue
-     
+
 
       a = 0.0D0
       b = 0.0D0
@@ -253,24 +253,24 @@
       do 70 i = 1, N
         do 80 j = 1, N
            do 90 k = 1, N
-               goto ( 200, 300, 400, 500 ) int(mod(i+j+k,4)+1) 
-200            a  = a +  AV(i) * BV(j) * ID(j,k) 
+               goto ( 200, 300, 400, 500 ) int(mod(i+j+k,4)+1)
+200            a  = a +  AV(i) * BV(j) * ID(j,k)
                check = check + a
                goto 100
-300            b  = b +  AV(j) * BV(i) * ID(k,j) 
-               check = check - b 
+300            b  = b +  AV(j) * BV(i) * ID(k,j)
+               check = check - b
                goto 100
-400            c  = c -  AV(i) * BV(j) * ID(k,j) 
+400            c  = c -  AV(i) * BV(j) * ID(k,j)
                check = sqrt(b**2 + c**2)
                goto 100
-500            d  = d -  AV(j) * BV(i) * ID(j,k) 
+500            d  = d -  AV(j) * BV(i) * ID(j,k)
                check2 = a + b + c + d
 100             continue
 90         continue
 80      continue
 70    continue
 
-      check = min(abs(check2),abs(check))/max(abs(check2),abs(check))           
+      check = min(abs(check2),abs(check))/max(abs(check2),abs(check))
 
       return
       end
@@ -298,6 +298,4 @@
       seed = temp - m * int(temp/m)
       conrand = seed / m
       return
-      end 
-   
-
+      end
